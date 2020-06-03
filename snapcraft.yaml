@@ -1,0 +1,23 @@
+name: dnshelecopter
+version: git
+summary: A forwarding DNS server that manages new site requests with an approval process.
+description: |
+  A forwarding DNS server that manages new site requests with an approval process.
+
+grade: stable
+confinement: strict
+
+apps:
+  dnshelecopter:
+    command: bin/dnshelecopter
+
+parts:
+  setup:
+    plugin: python
+    python-version: python3
+    python-packages: [dnslib]
+  dnshelecopter:
+    after: [setup]
+    plugin: python
+    python-version: python3
+    source: .
