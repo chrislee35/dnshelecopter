@@ -50,12 +50,12 @@ class PolicyResolver(BaseResolver):
                     client, rule = line.split(',',2)
                     if rule in ['master','excepted','blacklisted','denied','enforced']:
                         self.client_rules[client] = rule
-                        print("Added client rule: %s %s" % (client, rule))
+                        #print("Added client rule: %s %s" % (client, rule))
                         
     def save_domain_rules(self):
         with open(self.domains_rules_filename, 'w') as fh:
-            for client in self.client_rules.keys():
-                fh.write('%s,%s\n' % (client, self.client_rules[client]))
+            for domain in self.domain_rules.keys():
+                fh.write('%s,%s\n' % (domain, self.domain_rules[domain]))
     
     def load_domain_rules(self):
         with open(self.domains_rules_filename, 'r') as fh:
@@ -65,7 +65,7 @@ class PolicyResolver(BaseResolver):
                     domain, rule = line.split(',',2)
                     if rule in ['whitelisted', 'blacklisted', 'requested']:
                         self.domain_rules[DNSLabel(domain)] = rule
-                        print("Added domain rule: %s %s" % (domain, rule))
+                        #print("Added domain rule: %s %s" % (domain, rule))
                     if rule == 'requested':
                         request_label = self.add_request(domain, DNSLabel(domain))
                         print("To approve %s, please query %s" % (domain, str(request_label)))

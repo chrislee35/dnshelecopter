@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en" class="desktop-view not-mobile-device text-size-normal anon">
+  <head>
+    <meta charset="utf-8">
+    <title>DNS Helecopter</title>
+    <meta name="description" content="DNS Helecopter Administration Page allows the admin to whitelist or blacklist sites.">
+<link rel="icon" type="image/png" href="https://www.chrisleephd.us/dnshelecopter/dnshelecopter_32x32.png">
+<link rel="apple-touch-icon" type="image/png" href="https://www.chrisleephd.us/dnshelecopter/dnshelecopter_180x180.png">
+<meta name="theme-color" content="#ffffff">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+<script type='text/javascript' src='jquery-3.5.1.min.js'></script>
+<script type='text/javascript' src='jquery.sha256.min.js'></script>
+<script type='text/javascript'>
+  var client_rules;
+  var domain_rules;
+
+  document.onload = function () {
+    var pw = document.getElementById("pw");
+    input.addEventListener("keyup", function(event) {
+      if (event.keyCode == 13) {
+        event.preventDefault();
+        processLoginResponse();
+      }
+    });
+  }
+  
+  function processLogin() {
+    $.ajax({
+      type: "GET",
+      url: "/token",
+      success: processToken,
+    });
+  }
+  
+  function processToken(data) {
+    var pw = document.forms['login']['pw'].value;
+    if(data["token"]) {
+      var salted_pass = data["token"]+pw;
+      console.log(salted_pass);
+      var login_hash = $.sha256(salted_pass);
+      $.ajax({
+        type: "POST",
+        url: "/login",
+        data: { credential: login_hash },
+        success: processLoginResponse,
+      });
+    }
+  }
+  
+  function processLoginResponse(data) {
+    if(data["error"]) {
+      console.log(data["error"]);
+      
+    } else {
+      $('#login').hide();
+      $('#clients').show();
+      $('#domains').show();
+      fetchClientRules();
+      fetchDomainRules();
+    }
+  }
+  
+  function fetchClientRules() {
+    $.ajax({
+      type: "GET",
+      url: "/clients",
+      success: fetchClientRulesResponse,
+    });
+  }
+  
+  function fetchClientRulesResponse(data) {
+    if(data["error"]) {
+      console.log(data["error"]);
+    } else {
+      client_rules = data;
+      var html = "<table><tr><th>Client</th><th>Rule</th></tr>"
+      console.log(data);
+      var options = ['master', 'excepted', 'blacklisted', 'denied', 'enforced'];
+      "<option value='master'>master</option><option value='excepted'>excepted</option><option value='blacklisted'>blacklisted</option><option value='denied'>denied</option><option value='enforced'>enforced</option>";
+      for (let client in data) {
+        var status = data[client];
+        html += "<tr><td>"+client+"</td><td><select name='cr_"+client+"'>\n";
+        for (let i in options) {
+          var opt = options[i];
+          if(opt == status) {
+            html += "<option selected value='"+opt+"'>"+opt+"</option>\n";
+          } else {
+            html += "<option value='"+opt+"'>"+opt+"</option>\n";
+          }
+        }
+        html += "</select></td></tr>\n";
+      }
+      html += "</table>"
+      $("#client_rules").html(html)
+    }
+  }
+  
+  function fetchDomainRules() {
+    $.ajax({
+      type: "GET",
+      url: "/domains",
+      success: fetchDomainRulesResponse,
+    });
+  }
+  
+  function fetchDomainRulesResponse(data) {
+    if(data["error"]) {
+      console.log(data["error"]);
+    } else {
+      domain_rules = data;
+      var html = "<table><tr><th>Client</th><th>Rule</th></tr>"
+      console.log(data);
+      var options = ['blacklisted', 'whitelisted', 'requested'];
+      var count = 0;
+      for (let domain in data) {
+        var status = data[domain];
+        html += "<tr><td>"+domain+"</td><td><select name='dr_"+domain+"'>";
+        for (let i in options) {
+          var opt = options[i];
+          if(opt == status) {
+            html += "<option selected value='"+opt+"'>"+opt+"</option>\n";
+          } else {
+            html += "<option value='"+opt+"'>"+opt+"</option>\n";
+          }
+        }
+        html += "</select></td></tr>\n";
+        count = count + 1;
+        if(count > 50) {
+          break;
+        }
+      }
+      html += "</table>"
+      $("#domain_rules").html(html)
+    }
+   }
+   
+   function submitClientRule(ip, status) {
+     $.ajax({
+       type: "POST",
+       url: "/client",
+       data: { ip: ip, status: status },
+       success: processSubmitClientRuleResponse,
+     });
+   }
+   function processSubmitClientRuleResponse(data) {
+     alert(data['message']);
+   }
+
+   function submitDomainRule(domain, status) {
+     $.ajax({
+       type: "POST",
+       url: "/domain",
+       data: { domain: domain, status: status },
+       success: processSubmitDomainRuleResponse,
+     });
+   }
+   
+   function processSubmitDomainRuleResponse(data) {
+     alert(data['message']);
+   }
+
+</script>
+
+<body>
+  <h1>DNS Helecopter</h1>
+  
+<div id='login'>
+  <h2>Login</h2>
+  <form name='login'>
+    Password: <input type='password' length='20' name='pw' />
+    <input type='button' value='login' onclick='processLogin()'/>
+  </form>
+</div>
+
+<div id='clients'>
+  <h2>New Client Rule</h2>
+  <form method='POST' action='/client'>
+    <input type='text' size='40' name='ip' />
+    <select name='status'>
+      <option value='master'>master</option>
+      <option value='excepted'>excepted</option>
+      <option value='blacklisted'>blacklisted</option>
+      <option value='denied'>denied</option>
+      <option value='enforced'>enforced</option>
+    </select>
+    <input type='button' value='add' onclick='submitClientRule(this.form["ip"].value, this.form["status"].value)'/>
+  </form>
+  <h2>Client Rules</h2>
+  <div id='client_rules'></div>
+</div>
+
+<div id='domains'>
+  <h2>New Domain Rule</h2>
+  <form method='POST' action='/domain'>
+    <input type='text' size='40' name='domain' />
+    <select name='status'>
+      <option value='whitelisted'>whitelisted</option>
+      <option value='blacklisted'>blacklisted</option>
+      <option value='requested'>requested</option>
+    </select>
+    <input type='button' value='add' onclick='submitDomainRule(this.form["domain"].value, this.form["status"].value)'/>
+  </form>
+  <h2>Domain Rules</h2>
+  <div id='domain_rules'></div>
+</div>
+
+</body>
+</html>
