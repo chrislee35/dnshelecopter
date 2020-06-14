@@ -23,9 +23,9 @@ class CLIControl(CommandChannel):
                 request_label = DNSLabel(request_domain)
                 if resolver.requests.get(request_label):
                     domain = resolver.requests[request_label]
-                    resolver.domain_rules[domain] = 'whitelisted'
+                    resolver.domain_rules[domain] = 'allowed'
                     resolver.save_domain_rules()
-                    print("%s whitelisted" % domain)
+                    print("%s allowed" % domain)
                 else:
                     print("Request %s not found" % request_domain)
             elif line.startswith('deny'):
@@ -33,16 +33,16 @@ class CLIControl(CommandChannel):
                 request_label = DNSLabel(request_domain)
                 if resolver.requests.get(request_label):
                     domain = resolver.requests[request_label]
-                    resolver.domain_rules[domain] = 'blacklisted'
+                    resolver.domain_rules[domain] = 'blocked'
                     resolver.save_domain_rules()
-                    print("%s blacklisted" % domain)
+                    print("%s denied" % domain)
                 else:
                     print("Request %s not found" % request_domain)
-            elif line.startswith('blacklist'):
+            elif line.startswith('blocklist'):
                 _, domain = message.content.split(' ',2)
-                resolver.domain_rules[domain] = 'blacklisted'
+                resolver.domain_rules[domain] = 'blocked'
                 resolver.save_domain_rules()
-                print("%s blacklisted" % domain)
+                print("%s denied" % domain)
             elif line.startswith('block'):
                 _, clientip = line.split(' ', 2)
                 resolver.client_rules[client] = 'denied'
@@ -63,8 +63,8 @@ class CLIControl(CommandChannel):
             elif line == 'help':
                 print("""help                  this useful stuff
 approve <request_id>  approve the request tied to a domain, (hash.control.)
-deny <request_id>     deny the domain and add it to the blacklist
-blacklist <domain>    blacklist a domain (reguardless of a request)
+deny <request_id>     deny the domain and add it to the block list
+blocklist <domain>    block a domain (reguardless of a request)
 block  <client ip>    return NXDOMAIN to all requests from this IP
 except <client ip>    do not enforce rules on this client IP
 enforce <client ip>   enforce rules on this client IP

@@ -7,7 +7,7 @@ with open('requirements.txt') as f:
     
 setup(name='dnshelecopter',
       version='0.0.1',
-      description='DNS resolver (forwarding) with whitelisting functionality',
+      description='DNS resolver (forwarding) with policy-enforcing functionality',
       author='Chris Lee',
       author_email='python@chrisleephd.us',
       url='https://github.com/chrislee35/dnshelecopter',

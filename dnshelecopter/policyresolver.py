@@ -4,8 +4,8 @@ from dnslib.server import DNSServer,DNSHandler,BaseResolver,DNSLogger
 import time, socket, hashlib, copy, asyncio
 
 class PolicyResolver(BaseResolver):
-    """Caching Recursive Resolver that has multiple rules on how to resolve based on the client and the domain.  Also a way to change the whitelisted domains.
-        White/black lists are maintained through several text files.
+    """Caching Recursive Resolver that has multiple rules on how to resolve based on the client and the domain.  Also a way to change the allow listed domains.
+        allow/block lists are maintained through several text files.
     
     """
 
@@ -48,7 +48,7 @@ class PolicyResolver(BaseResolver):
                 line = line.strip()
                 if len(line) > 6:
                     client, rule = line.split(',',2)
-                    if rule in ['master','excepted','blacklisted','denied','enforced']:
+                    if rule in ['master','excepted','blocked','denied','enforced']:
                         self.client_rules[client] = rule
                         #print("Added client rule: %s %s" % (client, rule))
                         
@@ -63,7 +63,7 @@ class PolicyResolver(BaseResolver):
                 line = line.strip()
                 if len(line) > 6:
                     domain, rule = line.split(',',2)
-                    if rule in ['whitelisted', 'blacklisted', 'requested']:
+                    if rule in ['allowed', 'blocked', 'requested']:
                         self.domain_rules[DNSLabel(domain)] = rule
                         #print("Added domain rule: %s %s" % (domain, rule))
                     if rule == 'requested':
@@ -103,16 +103,16 @@ class PolicyResolver(BaseResolver):
         
         if str(qname).endswith('.control.'):
             if self.client_rules.get(client, '') == 'master':
-                # decode the label and add the domain to the whitelist
+                # decode the label and add the domain to the allow list
                 if self.requests.get(qname):
-                    self.domain_rules[self.requests[qname]] = 'whitelisted'
+                    self.domain_rules[self.requests[qname]] = 'allowed'
                     self.save_domain_rules()
                     for rr in self.rrs:
                         a = copy.copy(rr)
                         a.rname = qname
                         reply.add_answer(a)
                 else:
-                    print("tried to whitelist something that hasn't been requested")
+                    print("tried to allow something that hasn't been requested")
                     reply.header.rcode = RCODE.NXDOMAIN
             else:
                 print("unauthenticated")
@@ -122,7 +122,7 @@ class PolicyResolver(BaseResolver):
             print("master or excepted")
             reply = self.recall_or_resolve(request)
             print(dir(request))
-        elif self.client_rules.get(client, '') in ['blacklisted']:
+        elif self.client_rules.get(client, '') in ['blocked']:
             # don't reply at all, not even an NXDOMAIN
             # it messes up the logging though... we'll need to fix that
             reply.header.rcode = RCODE.NXDOMAIN
@@ -134,11 +134,11 @@ class PolicyResolver(BaseResolver):
             print("returning NX 2")
         elif self.client_rules.get(client, '') in ['enforced', 'master']:
             # follow the domain_rules
-            if self.domain_rules.get(qname, '') in ['whitelisted']:
+            if self.domain_rules.get(qname, '') in ['allowed']:
                 # check the cache, resolve if necessary, return answer
-                print("whitelisted")
+                print("allowed listed")
                 reply = self.recall_or_resolve(request)
-            elif self.domain_rules.get(qname, '') in ['blacklisted', 'requested']:
+            elif self.domain_rules.get(qname, '') in ['blocked', 'requested']:
                 # return NXDOMAIN
                 reply.header.rcode = RCODE.NXDOMAIN
                 print("returning NX 3")

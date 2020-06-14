@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <title>DNS Helecopter</title>
-    <meta name="description" content="DNS Helecopter Administration Page allows the admin to whitelist or blacklist sites.">
+    <meta name="description" content="DNS Helecopter Administration Page allows the admin to allow and block sites.">
 <link rel="icon" type="image/png" href="https://www.chrisleephd.us/dnshelecopter/dnshelecopter_32x32.png">
 <link rel="apple-touch-icon" type="image/png" href="https://www.chrisleephd.us/dnshelecopter/dnshelecopter_180x180.png">
 <meta name="theme-color" content="#ffffff">
@@ -75,8 +75,8 @@
       client_rules = data;
       var html = "<table><tr><th>Client</th><th>Rule</th></tr>"
       console.log(data);
-      var options = ['master', 'excepted', 'blacklisted', 'denied', 'enforced'];
-      "<option value='master'>master</option><option value='excepted'>excepted</option><option value='blacklisted'>blacklisted</option><option value='denied'>denied</option><option value='enforced'>enforced</option>";
+      var options = ['master', 'excepted', 'blocked', 'denied', 'enforced'];
+      "<option value='master'>master</option><option value='excepted'>excepted</option><option value='blocked'>blocked</option><option value='denied'>denied</option><option value='enforced'>enforced</option>";
       for (let client in data) {
         var status = data[client];
         html += "<tr><td>"+client+"</td><td><select name='cr_"+client+"'>\n";
@@ -110,7 +110,7 @@
       domain_rules = data;
       var html = "<table><tr><th>Client</th><th>Rule</th></tr>"
       console.log(data);
-      var options = ['blacklisted', 'whitelisted', 'requested'];
+      var options = ['blocked', 'allowed', 'requested'];
       var count = 0;
       for (let domain in data) {
         var status = data[domain];
@@ -179,7 +179,7 @@
     <select name='status'>
       <option value='master'>master</option>
       <option value='excepted'>excepted</option>
-      <option value='blacklisted'>blacklisted</option>
+      <option value='blocked'>blocked</option>
       <option value='denied'>denied</option>
       <option value='enforced'>enforced</option>
     </select>
@@ -194,8 +194,8 @@
   <form method='POST' action='/domain'>
     <input type='text' size='40' name='domain' />
     <select name='status'>
-      <option value='whitelisted'>whitelisted</option>
-      <option value='blacklisted'>blacklisted</option>
+      <option value='allowed'>allowed</option>
+      <option value='blocked'>blocked</option>
       <option value='requested'>requested</option>
     </select>
     <input type='button' value='add' onclick='submitDomainRule(this.form["domain"].value, this.form["status"].value)'/>

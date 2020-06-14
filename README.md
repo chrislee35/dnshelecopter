@@ -1,5 +1,5 @@
 # dnshelecopter
-Website whitelisting system via DNS - When new sites are visited, the manager can whitelist it.
+Website policy-enforcing system via DNS - When new sites are visited, the manager can allow it.
 
 # Installation
 
@@ -30,4 +30,4 @@ The tool right now only uses Discord as a command channel.  That will update soo
 
 # How this works
 
-This opens a UDP socket on the given port and listens for DNS requests.  It then evaluates the source (by IP) and the domain to determine whether to resolve or not.  If the source is "enforced" and the domain isn't expressly white or blacklisted, then it will return a NXDOMAIN, but will send a notification to the command channel asking for express approval or rejection of the domain.
+This opens a UDP socket on the given port and listens for DNS requests.  It then evaluates the source (by IP) and the domain to determine whether to resolve or not.  If the source is "enforced" and the domain isn't expressly allowed or blocked, then it will return a NXDOMAIN, but will send a notification to the command channel asking for express approval or rejection of the domain.

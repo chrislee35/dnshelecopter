@@ -45,7 +45,7 @@ class HTTPControl(CommandChannel):
         
     async def set_client(self, request):
         data = await request.post()
-        if data.get('ip') and data.get('status') and data['status'] in ['master','excepted','blacklisted','denied','enforced']:
+        if data.get('ip') and data.get('status') and data['status'] in ['master','excepted','blocked','denied','enforced']:
             self.resolver.client_rules[data['ip']] = data['status']
             return web.json_response({'status': 'OK', 'message': 'client %s set to %s' % (data['ip'], data['status'])})
         else:
@@ -53,7 +53,7 @@ class HTTPControl(CommandChannel):
 
     async def set_domain(self, request):
         data = await request.post()
-        if data.get('domain') and data.get('status') and data['status'] in ['whitelisted', 'blacklisted', 'requested']:
+        if data.get('domain') and data.get('status') and data['status'] in ['allowed', 'blocked', 'requested']:
             self.resolver.domain_rules[DNSLabel(data['domain'])] = data['status']
             return web.json_response({'status': 'OK', 'message': 'domain %s set to %s' % (data['domain'], data['status'])})
         else:
