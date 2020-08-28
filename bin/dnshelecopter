@@ -25,21 +25,28 @@ command_channels = config.get('dnshelecopter', 'command_channels').split(',')
 discord = None
 for ccname in command_channels:
     if ccname == 'discord':
-        from dnshelecopter.discoredcontrol import DiscordControl
+        from dnshelecopter.discordcontrol import DiscordControl
         cc = DiscordControl(config[ccname], resolver)
+        resolver.add_command_channel(cc)
         cc.start()
     elif ccname == 'http':
         from dnshelecopter.httpcontrol import HTTPControl
         cc = HTTPControl(config[ccname], resolver)
+        resolver.add_command_channel(cc)
         cc.run()
     elif ccname == 'cli':
         from dnshelecopter.clicontrol import CLIControl
         cc = CLIControl({}, resolver)
+        resolver.add_command_channel(cc)
+        cc.run()
+    elif ccname == 'hangouts':
+        from dnshelecopter.hangoutscontrol import HangoutsControl
+        cc = HangoutsControl(config[ccname], resolver)
+        resolver.add_command_channel(cc)
         cc.run()
     else:
         print("unknown command channel: %s" % ccname)
         continue
-    resolver.add_command_channel(cc)
     
-while True:
+while resolver.running:
     time.sleep(1)
